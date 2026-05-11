@@ -11,9 +11,9 @@ from raccoon import (
     PidConfig,
     PidGains,
     SensorPosition,
-    TableMap,
     UnifiedMotionPidConfig,
     WheelPosition,
+    WorldMap,
 )
 
 from src.hardware.defs import Defs
