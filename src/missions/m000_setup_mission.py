@@ -32,6 +32,7 @@ class M000SetupMission(SetupMission):
             # #),
             # loop_for(
             calibrate(distance_cm=70,
+                      ema_alpha=0.3,
                       # calibration_sets=["default", "upper"],
                       ),
             #     5
