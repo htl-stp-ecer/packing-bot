@@ -31,7 +31,7 @@ class M000SetupMission(SetupMission):
             # #    characterize_axes=["lateral"]
             # #),
             loop_for(
-                calibrate(distance_cm=100,
+                calibrate(distance_cm=70,
                           # calibration_sets=["default", "upper"],
                           ),
                 5
