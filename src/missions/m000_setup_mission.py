@@ -31,6 +31,8 @@ class M000SetupMission(SetupMission):
             # #    characterize_axes=["lateral"]
             # #),
             # loop_for(
+            slow_servo(Defs.pom_arm, 170, 20),
+            slow_servo(Defs.pom_arm, 0, 20),
             calibrate(distance_cm=70,
                       ema_alpha=0.3,
                       # calibration_sets=["default", "upper"],
