@@ -30,12 +30,13 @@ class M000SetupMission(SetupMission):
             # #    tune_motion=False,
             # #    characterize_axes=["lateral"]
             # #),
-            loop_for(
-                calibrate(distance_cm=70,
-                          # calibration_sets=["default", "upper"],
-                          ),
-                5
-            ),
+            # loop_for(
+            #     calibrate(distance_cm=70,
+            #               # calibration_sets=["default", "upper"],
+            #               ),
+            #     5
+            # ),
+            turn_left(45),
             #
             # fully_disable_servos(),
         ])
