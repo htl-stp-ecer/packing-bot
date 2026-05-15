@@ -79,9 +79,10 @@ class M010GrabFirstPomsMission(Mission):
             # ),
 
             # dont do drive and arm movements at the same time!
+            wait_for_button("fwd"),
             drive_forward(35),
-            wait_for_button(),
+            wait_for_button("turn"),
             turn_left(45),
-            wait_for_button(),
+            wait_for_button("to black"),
             drive_forward(35).until(on_black(Defs.front.left)),
         ])
