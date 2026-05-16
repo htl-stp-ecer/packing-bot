@@ -35,7 +35,7 @@ class Defs:
     rear_right_motor = Motor(
         port=3,
         inverted=True,
-        calibration=MotorCalibration(ticks_to_rad=1.783e-05, vel_lpf_alpha=0.05),
+        calibration=MotorCalibration(ticks_to_rad=1.783e-05, vel_lpf_alpha=0.95),
     )
     shild = ServoPreset(
         Servo(port=0),
