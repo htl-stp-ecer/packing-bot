@@ -8,6 +8,7 @@ class M000SetupMission(SetupMission):
     def sequence(self) -> Sequential:
         setup_time = 120
         return seq([
+
             # pause_setup_timer(),
             # fully_disable_servos(),
             # wait_for_button("move servos into starting position"),
