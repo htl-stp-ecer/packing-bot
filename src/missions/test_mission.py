@@ -4,18 +4,10 @@ from raccoon import *
 class TestMission(Mission):
     def sequence(self) -> Sequential:
         return seq([
-            characterize_drive(
-                axes=["angular"]
-            )
-            #strafe_right_until_black([Defs.front_left_light_sensor, Defs.rear_left_light_sensor], 1.0),
+            # Phase 5 — Static Friction (motors spin low PWM until moving)
+            # Safe ohne Fahrfläche: each motor braked while other is tested
+            auto_tune_static_friction(persist=False),
 
-            #simpl_frontside_forward_lineup_on_black(),
-            #drive_forward_until_black([Defs.front_left_light_sensor, Defs.front_right_light_sensor]),
-            #wait(10),
-            #drive_forward(10, 1.0),
-            #drive_backward_until_black([Defs.front_left_light_sensor, Defs.front_right_light_sensor]),
-
-            #frontside_forward_lineup_on_black(),
-
-            #drive_forward(20,0.1),
+            # Phase 6 — Vel LPF (only runs if BEMF is available)
+            auto_tune_vel_lpf(persist=False),
         ])
