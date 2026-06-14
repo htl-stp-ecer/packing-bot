@@ -45,7 +45,5 @@ class M000SetupMission(SetupMission):
             #
             # fully_disable_servos(),
 
-            run(lambda robot: print(
-                f"[BEMFTEST] active_source={robot.odometry.get_active_source()} "
-                f"heading={robot.odometry.get_heading():.3f}"))
+            drive_forward(20)
         ])
