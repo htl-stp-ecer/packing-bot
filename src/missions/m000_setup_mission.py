@@ -45,5 +45,5 @@ class M000SetupMission(SetupMission):
             #
             # fully_disable_servos(),
 
-            #drive_forward(20)
+            drive_forward(20)
         ])
