@@ -5,6 +5,9 @@ front_left_motor:
   calibration:
     ticks_to_rad: 1.717e-05
     vel_lpf_alpha: 0.05
+    kp: 1.22
+    ki: 0.045
+    kd: 0.0
 front_right_motor:
   type: Motor
   port: 0
@@ -12,6 +15,9 @@ front_right_motor:
   calibration:
     ticks_to_rad: 1.761e-05
     vel_lpf_alpha: 0.95
+    kp: 1.22
+    ki: 0.045
+    kd: 0.0
 rear_left_motor:
   type: Motor
   port: 2
@@ -19,6 +25,9 @@ rear_left_motor:
   calibration:
     ticks_to_rad: 1.74e-05
     vel_lpf_alpha: 0.95
+    kp: 1.22
+    ki: 0.045
+    kd: 0.0
 rear_right_motor:
   type: Motor
   port: 3
@@ -26,3 +35,6 @@ rear_right_motor:
   calibration:
     ticks_to_rad: 1.783e-05
     vel_lpf_alpha: 0.95
+    kp: 1.22
+    ki: 0.045
+    kd: 0.0
