@@ -38,12 +38,12 @@ class M000SetupMission(SetupMission):
             #           ema_alpha=0.3,
             #           # calibration_sets=["default", "upper"],
             #           ),
-            auto_tune(),
+            #auto_tune(),
             #     5
             # ),
             # turn_left(45),
             #
             # fully_disable_servos(),
 
-            #drive_forward(20)
+            drive_forward(20)
         ])
