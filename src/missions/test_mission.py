@@ -3,10 +3,10 @@ from raccoon import *
 
 class TestMission(Mission):
     def sequence(self) -> Sequential:
-        # DEBUG: motion-PID drive-pattern validation.
-        # Runs ONLY the motion phase, no button confirms (step_confirm=False),
-        # no persistence (don't overwrite tuned gains while validating the
-        # forward/back drive pattern). Start with the distance axis.
+        # DEBUG: full motion-PID tune (distance, lateral, heading).
+        # Autonomous (step_confirm=False); persists the best-found gains to
+        # raccoon.project.yml. Each axis drives forward ~1 m, returns to start,
+        # repeated across the Hooke-Jeeves trials (turn: rotate, then back).
         return seq([
             auto_tune(
                 tune_bemf_velocity=False,
@@ -18,8 +18,8 @@ class TestMission(Mission):
                 tune_velocity=False,
                 tune_motion=True,
                 tune_tolerances=False,
-                motion_axes=["distance"],
+                motion_axes=["distance", "lateral", "heading"],
                 step_confirm=False,
-                persist=False,
+                persist=True,
             ),
         ])
