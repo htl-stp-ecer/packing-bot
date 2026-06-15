@@ -69,18 +69,23 @@ motion_pid:
   heading_recovery_rate: 0.05
   heading_saturation_error_rad: 0.01
   heading_recovery_error_rad: 0.005
+  # Measured 2026-06-15 via calib-board ground truth on the MCU-chassis path
+  # (all 4 wheels driving, after the inverted-wheel firmware fix). Forward was
+  # already close; lateral + angular were stale legacy values (from an autotune
+  # run with the right side dead) and are corrected here. Strafe is genuinely
+  # weak (~3x slower than forward) — mecanum roller efficiency on this chassis.
   linear:
-    max_velocity: 0.2139
-    acceleration: 0.9402
-    deceleration: 1.4
+    max_velocity: 0.19
+    acceleration: 0.9
+    deceleration: 1.25
   lateral:
-    max_velocity: 0.2209
-    acceleration: 0.6485
-    deceleration: 0.4498
+    max_velocity: 0.06
+    acceleration: 0.15
+    deceleration: 0.5
   angular:
-    max_velocity: 1.8501
-    acceleration: 11.0545
-    deceleration: 20
+    max_velocity: 1.25
+    acceleration: 6.0
+    deceleration: 11.0
 physical:
   width_cm: 23.5
   length_cm: 29.6
