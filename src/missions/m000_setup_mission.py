@@ -45,5 +45,7 @@ class M000SetupMission(SetupMission):
             #
             # fully_disable_servos(),
 
-            drive_forward(20)
+            # DEBUG: no-op setup during motion-tune drive-pattern validation
+            # (was drive_forward(20) — kept out so the full ~1 m runway is free).
+            wait_for_seconds(0.1),
         ])
