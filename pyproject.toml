@@ -5,6 +5,7 @@ requires-python = "==3.13.*"
 dependencies = [
     "raccoon-cli==0.1.157",
     "raccoon-library==1.0.104",
+    "matplotlib>=3.8",
 ]
 
 [project.scripts]

@@ -1,15 +1,17 @@
 from raccoon import *
 
+from src.steps.velocity_plot import PlotDriveVelocity, PlotTurnVelocity
+
 
 class TestMission(Mission):
     def sequence(self) -> Sequential:
-        # DEBUG: full motion-PID tune (distance, lateral, heading).
-        # Autonomous (step_confirm=False); persists the best-found gains to
-        # raccoon.project.yml. Each axis drives forward ~1 m, returns to start,
-        # repeated across the Hooke-Jeeves trials (turn: rotate, then back).
+        # Educational PID demo: each move records commanded vs. measured
+        # velocity and saves a matplotlib plot to /tmp/velocity_plots.
+        # PlotDriveVelocity / PlotTurnVelocity are instrumented drop-in
+        # replacements for drive_forward / turn_right.
         return seq([
             wait_for_button(),
-            drive_forward(50),
+            PlotDriveVelocity(50),
             wait_for_button(),
-            turn_right(90)
+            PlotTurnVelocity(90, direction="right")
         ])
