@@ -71,7 +71,7 @@ class M000SetupMission(SetupMission):
             # #auto_tune(),
             # #     5
             # # ),
-            drive_forward(30)
+            # drive_forward(30)
             # #
             # # fully_disable_servos(),
             #
