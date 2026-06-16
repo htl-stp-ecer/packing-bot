@@ -50,9 +50,15 @@ class DriveCalibrationSample:
 
     @property
     def scale(self) -> float:
+        # A distance trim is a magnitude correction, so it is inherently
+        # positive. Use absolute distances: the calibration board's pose frame
+        # has a constant 180° mounting offset, so its projected displacement may
+        # carry the opposite sign of the internal odometry even though both
+        # measure the same forward travel — a signed ratio would yield a bogus
+        # negative scale.
         if abs(self.odom_distance_m) < 1e-9:
             return 1.0
-        return self.ground_truth_distance_m / self.odom_distance_m
+        return abs(self.ground_truth_distance_m) / abs(self.odom_distance_m)
 
 
 @dataclass
@@ -77,7 +83,6 @@ class SetupCalibrationSession:
     def __init__(self, robot: "GenericRobot") -> None:
         self._robot = robot
         self._board_probe_done = False
-        self._previous_preferred_source = None
         self._board_available = False
         self._gate_completed = False
         self._required_axes: set[CalibrationAxis] = set()
@@ -152,36 +157,50 @@ class SetupCalibrationSession:
         return float((scales[mid - 1] + scales[mid]) / 2.0)
 
     def ensure_board_probe(self, robot: "GenericRobot", log_step) -> None:
+        # Probe whether the calibration board is connected so it can be read as
+        # ground truth. This is purely passive: the preferred odometry source is
+        # NEVER changed here. Switching the preference would re-route the whole
+        # motion system onto the board and hard-reset the odometry frame — the
+        # collect_* steps only watch the board alongside the internal estimate
+        # to measure their difference, so the motion system keeps using whatever
+        # source it was already on.
         if self._board_probe_done:
             return
-        self._previous_preferred_source = robot.odometry.get_preferred_source()
-        robot.odometry.set_preferred_source(OdometrySource.CALIBRATION_BOARD)
-        active = robot.odometry.get_active_source()
-        self._board_available = active == OdometrySource.CALIBRATION_BOARD
+        self._board_available = robot.odometry.is_source_available(
+            OdometrySource.CALIBRATION_BOARD
+        )
         self._board_probe_done = True
         if self._board_available:
-            log_step.info("Setup calibration: calibration board active")
+            log_step.info("Setup calibration: calibration board detected (ground-truth reference)")
         else:
             log_step.warn(
                 "Setup calibration: calibration board unavailable; collect_drive will ask for manual distance"
             )
-
-    def restore_odometry_source(self, robot: "GenericRobot", log_step) -> None:
-        if self._previous_preferred_source is None:
-            return
-        robot.odometry.set_preferred_source(self._previous_preferred_source)
-        active = robot.odometry.get_active_source()
-        log_step.info(f"Setup calibration: odometry source restored to {active.name}")
 
     @staticmethod
     def capture_internal_snapshot(robot: "GenericRobot") -> _PoseSnapshot:
         return _PoseSnapshot.from_pose(robot.odometry.get_internal_pose())
 
     @staticmethod
-    def capture_active_snapshot(robot: "GenericRobot") -> _PoseSnapshot:
-        return _PoseSnapshot.from_pose(robot.odometry.get_pose())
+    def capture_reference_snapshot(robot: "GenericRobot") -> _PoseSnapshot:
+        return _PoseSnapshot.from_pose(SetupCalibrationSession.reference_pose(robot))
+
+    @staticmethod
+    def reference_pose(robot: "GenericRobot"):
+        """Read the calibration-board pose directly, without changing the active source."""
+        return robot.odometry.get_pose_from_source(OdometrySource.CALIBRATION_BOARD)
 
     @staticmethod
     def axis_distance_m(start: _PoseSnapshot, end_pose, axis: CalibrationAxis) -> float:
         forward, lateral, _ = start.project(end_pose)
         return forward if axis == CalibrationAxis.FORWARD else lateral
+
+    @staticmethod
+    def detect_axis(start: _PoseSnapshot, end_pose) -> CalibrationAxis:
+        """Infer the driven axis from the dominant internal-odometry displacement."""
+        forward, lateral, _ = start.project(end_pose)
+        return (
+            CalibrationAxis.FORWARD
+            if abs(forward) >= abs(lateral)
+            else CalibrationAxis.LATERAL
+        )

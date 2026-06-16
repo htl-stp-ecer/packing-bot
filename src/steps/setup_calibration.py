@@ -24,6 +24,10 @@ _FALLBACK_FORWARD_CM = 70.0
 _FALLBACK_LATERAL_CM = 50.0
 _FALLBACK_IR_DRIVE_CM = 50.0
 _FALLBACK_SPEED = 0.4
+# Below this, a "ground truth" board reading is treated as a board failure
+# (the robot clearly drove, so a ~0cm reference means the board did not track)
+# and we fall back to manual measurement instead of recording a bogus sample.
+_MIN_GROUND_TRUTH_M = 0.02
 
 
 def _axis_name(axis: CalibrationAxis) -> str:
@@ -69,13 +73,12 @@ async def _sample_ir_while_running(
 
 
 class CollectDrive(UIStep):
-    def __init__(self, step, axis: CalibrationAxis = CalibrationAxis.FORWARD) -> None:
+    def __init__(self, step) -> None:
         super().__init__()
         self._step = step
-        self._axis = axis
 
     def _generate_signature(self) -> str:
-        return f"CollectDrive(axis={self._axis.name}, step={self._step})"
+        return f"CollectDrive(step={self._step})"
 
     async def _execute_step(self, robot: "GenericRobot") -> None:
         if is_no_calibrate():
@@ -83,34 +86,43 @@ class CollectDrive(UIStep):
             return
 
         session = robot.get_service(SetupCalibrationSession)
-        session.require_axis(self._axis)
         session.ensure_board_probe(robot, self)
 
         internal_start = session.capture_internal_snapshot(robot)
-        active_start = session.capture_active_snapshot(robot) if session.board_available else None
+        reference_start = session.capture_reference_snapshot(robot) if session.board_available else None
 
         await self._step.run_step(robot)
 
         internal_end = robot.odometry.get_internal_pose()
-        odom_distance_m = session.axis_distance_m(internal_start, internal_end, self._axis)
+        # The driven axis is inferred from the dominant internal-odometry
+        # displacement, so callers don't have to declare it up front.
+        axis = session.detect_axis(internal_start, internal_end)
+        session.require_axis(axis)
+        odom_distance_m = session.axis_distance_m(internal_start, internal_end, axis)
 
-        if session.board_available and active_start is not None:
-            active_end = robot.odometry.get_pose()
-            ground_truth_m = session.axis_distance_m(active_start, active_end, self._axis)
-            session.add_drive_sample(
-                DriveCalibrationSample(
-                    axis=self._axis,
-                    odom_distance_m=odom_distance_m,
-                    ground_truth_distance_m=ground_truth_m,
-                    source="calibration_board",
+        if session.board_available and reference_start is not None:
+            reference_end = session.reference_pose(robot)
+            ground_truth_m = session.axis_distance_m(reference_start, reference_end, axis)
+            if abs(ground_truth_m) >= _MIN_GROUND_TRUTH_M:
+                session.add_drive_sample(
+                    DriveCalibrationSample(
+                        axis=axis,
+                        odom_distance_m=odom_distance_m,
+                        ground_truth_distance_m=ground_truth_m,
+                        source="calibration_board",
+                    )
                 )
+                self.info(
+                    f"Collected {_axis_name(axis)} drive sample: "
+                    f"odom={_axis_abs_cm(odom_distance_m):.1f}cm "
+                    f"ground_truth={_axis_abs_cm(ground_truth_m):.1f}cm"
+                )
+                return
+            self.warn(
+                f"Calibration board reported ~0cm ground truth for a "
+                f"{_axis_abs_cm(odom_distance_m):.1f}cm {_axis_name(axis)} drive; "
+                f"falling back to manual measurement"
             )
-            self.info(
-                f"Collected {_axis_name(self._axis)} drive sample: "
-                f"odom={_axis_abs_cm(odom_distance_m):.1f}cm "
-                f"ground_truth={_axis_abs_cm(ground_truth_m):.1f}cm"
-            )
-            return
 
         measured_cm = await self.show(
             DistanceMeasureScreen(
@@ -122,14 +134,14 @@ class CollectDrive(UIStep):
         ground_truth_m = sign * (float(measured_cm) / 100.0)
         session.add_drive_sample(
             DriveCalibrationSample(
-                axis=self._axis,
+                axis=axis,
                 odom_distance_m=odom_distance_m,
                 ground_truth_distance_m=ground_truth_m,
                 source="manual_entry",
             )
         )
         self.info(
-            f"Collected manual {_axis_name(self._axis)} sample: "
+            f"Collected manual {_axis_name(axis)} sample: "
             f"odom={_axis_abs_cm(odom_distance_m):.1f}cm measured={float(measured_cm):.1f}cm"
         )
 
@@ -185,15 +197,12 @@ class CalibrationGate(UIStep):
         ir_sets = session.ir_sets_to_finalize(self._require_ir_sets)
 
         if not axes and not ir_sets:
-            if session.board_available:
-                session.restore_odometry_source(robot, self)
             session.finish_gate()
             return
 
         if axes:
             session.ensure_board_probe(robot, self)
             await self._finalize_drive_axes(robot, session, axes)
-            session.restore_odometry_source(robot, self)
 
         for set_name in ir_sets:
             await self._finalize_ir_set(robot, session, set_name)
@@ -247,13 +256,26 @@ class CalibrationGate(UIStep):
         axis: CalibrationAxis,
     ) -> None:
         internal_start = session.capture_internal_snapshot(robot)
-        active_start = session.capture_active_snapshot(robot) if session.board_available else None
+        reference_start = session.capture_reference_snapshot(robot) if session.board_available else None
         await step.run_step(robot)
         internal_end = robot.odometry.get_internal_pose()
         odom_distance_m = session.axis_distance_m(internal_start, internal_end, axis)
-        if session.board_available and active_start is not None:
-            active_end = robot.odometry.get_pose()
-            ground_truth_m = session.axis_distance_m(active_start, active_end, axis)
+
+        ground_truth_m = None
+        if session.board_available and reference_start is not None:
+            reference_end = session.reference_pose(robot)
+            board_m = session.axis_distance_m(reference_start, reference_end, axis)
+            if abs(board_m) >= _MIN_GROUND_TRUTH_M:
+                ground_truth_m = board_m
+            else:
+                self.warn(
+                    f"Calibration board reported ~0cm ground truth for a "
+                    f"{_axis_abs_cm(odom_distance_m):.1f}cm {_axis_name(axis)} drive; "
+                    f"falling back to manual measurement"
+                )
+
+        if ground_truth_m is not None:
+            source = "calibration_board"
         else:
             measured_cm = await self.show(
                 DistanceMeasureScreen(
@@ -263,12 +285,13 @@ class CalibrationGate(UIStep):
             )
             sign = 1.0 if odom_distance_m >= 0.0 else -1.0
             ground_truth_m = sign * (float(measured_cm) / 100.0)
+            source = "manual_entry"
         session.add_drive_sample(
             DriveCalibrationSample(
                 axis=axis,
                 odom_distance_m=odom_distance_m,
                 ground_truth_distance_m=ground_truth_m,
-                source="calibration_board" if session.board_available else "manual_entry",
+                source=source,
             )
         )
 
@@ -380,8 +403,8 @@ class CalibrationGate(UIStep):
             current_samples = robot.get_service(SetupCalibrationSession).get_ir_set(set_name).samples_by_port
 
 
-def collect_drive(step, axis: CalibrationAxis = CalibrationAxis.FORWARD) -> CollectDrive:
-    return CollectDrive(step, axis=axis)
+def collect_drive(step) -> CollectDrive:
+    return CollectDrive(step)
 
 
 def collect_ir_set(
