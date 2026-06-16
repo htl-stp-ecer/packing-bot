@@ -72,7 +72,7 @@ motion_pid:
   linear:
     max_velocity: 0.18
     acceleration: 0.9
-    deceleration: 0.25
+    deceleration: 1.25
   lateral:
     max_velocity: 0.06
     acceleration: 0.15
