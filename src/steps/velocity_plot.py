@@ -23,8 +23,9 @@ Runtime
 -------
 This runs on the robot (the Pi) because it commands the motors. The Pi has no
 interactive display, so plots are saved as PNG files with the headless "Agg"
-backend. A CSV of the raw samples is written alongside each plot so the data
-survives even if matplotlib is unavailable.
+backend, into a ``velocity_plots/`` directory at the project root. A CSV of the
+raw samples is written alongside each plot so the data survives even if
+matplotlib is unavailable.
 """
 
 from __future__ import annotations
@@ -43,7 +44,10 @@ from raccoon.motion import (
     TurnMotion,
 )
 
-_DEFAULT_OUT_DIR = "/tmp/velocity_plots"
+# Save plots into the project root (this file is at <root>/src/steps/), not /tmp,
+# so the output lives with the project and survives reboots.
+_PROJECT_ROOT = Path(__file__).resolve().parents[2]
+_DEFAULT_OUT_DIR = str(_PROJECT_ROOT / "velocity_plots")
 _HZ = 100  # control-loop frequency, matches the framework's MotionStep default
 
 
@@ -75,7 +79,7 @@ class PlotDriveVelocity(Step):  # noqa: F405
         speed: Speed scale of the motion profile (0.0--1.0).
         axis: ``"forward"`` (default) or ``"lateral"`` (strafe).
         out_dir: Directory for the PNG/CSV output. Default
-            ``"/tmp/velocity_plots"``.
+            ``<project_root>/velocity_plots``.
         timeout: Max seconds before the move is aborted. Default 15.0.
     """
 

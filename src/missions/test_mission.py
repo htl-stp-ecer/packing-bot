@@ -6,7 +6,7 @@ from src.steps.velocity_plot import PlotDriveVelocity, PlotTurnVelocity
 class TestMission(Mission):
     def sequence(self) -> Sequential:
         # Educational PID demo: each move records commanded vs. measured
-        # velocity and saves a matplotlib plot to /tmp/velocity_plots.
+        # velocity and saves a matplotlib plot to <project_root>/velocity_plots.
         # PlotDriveVelocity / PlotTurnVelocity are instrumented drop-in
         # replacements for drive_forward / turn_right.
         return seq([
