@@ -14,20 +14,20 @@ class M000SetupMission(SetupMission):
 
     def sequence(self) -> Sequential:
         return seq([
-            auto_tune(
-                tune_bemf_velocity=False,
-                tune_vel_lpf=False,
-                tune_static_friction=False,
-                tune_firmware_pid=False,
-                tune_encoder_cal=False,
-                tune_characterize=False,
-                tune_velocity=False,
-                tune_motion=True,
-                tune_tolerances=False,
-                motion_axes=["distance", "lateral", "heading"],
-                step_confirm=False,
-                persist=True,
-            ),
+            # auto_tune(
+            #     tune_bemf_velocity=False,
+            #     tune_vel_lpf=False,
+            #     tune_static_friction=False,
+            #     tune_firmware_pid=False,
+            #     tune_encoder_cal=False,
+            #     tune_characterize=False,
+            #     tune_velocity=False,
+            #     tune_motion=True,
+            #     tune_tolerances=False,
+            #     motion_axes=["distance", "lateral", "heading"],
+            #     step_confirm=False,
+            #     persist=True,
+            # ),
             #
             # pause_setup_timer(),
             # fully_disable_servos(),
@@ -71,7 +71,10 @@ class M000SetupMission(SetupMission):
             # #auto_tune(),
             # #     5
             # # ),
-            # # turn_left(45),
+            wait_for_button(),
+            turn_left(90),
+            wait_for_button(),
+            drive_forward(70)
             # #
             # # fully_disable_servos(),
             #

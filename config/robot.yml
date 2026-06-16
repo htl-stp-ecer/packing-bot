@@ -39,18 +39,18 @@ drive:
         kA: 0.0
 motion_pid:
   distance:
-    kp: 14.0
+    kp: 13.125
     ki: 0.0
-    kd: 0.25
+    kd: 0.2812
     integral_max: 10.0
     integral_deadband: 0.01
     derivative_lpf_alpha: 0.5
     output_min: -10.0
     output_max: 10.0
   heading:
-    kp: 9.5156
+    kp: 4.7578
     ki: 0.0
-    kd: 0.0125
+    kd: 0.0312
     integral_max: 10.0
     integral_deadband: 0.01
     derivative_lpf_alpha: 0.5
