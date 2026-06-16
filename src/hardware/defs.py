@@ -21,9 +21,9 @@ class Defs:
         port=1,
         inverted=False,
         calibration=MotorCalibration(
-            ticks_to_rad=0.00366956,
+            ticks_to_rad=0.0033983,
             vel_lpf_alpha=0.05,
-            bemf_offset=-2.4576,
+            bemf_offset=-54.2952,
             static_friction_pct=2,
         ),
     )
@@ -31,29 +31,29 @@ class Defs:
         port=0,
         inverted=True,
         calibration=MotorCalibration(
-            ticks_to_rad=0.00370476,
-            vel_lpf_alpha=0.05,
-            bemf_offset=26.38,
-            static_friction_pct=10,
+            ticks_to_rad=0.00355639,
+            vel_lpf_alpha=0.2,
+            bemf_offset=32.9275,
+            static_friction_pct=2,
         ),
     )
     rear_left_motor = Motor(
         port=2,
         inverted=False,
         calibration=MotorCalibration(
-            ticks_to_rad=0.00360168,
+            ticks_to_rad=0.00365705,
             vel_lpf_alpha=0.05,
-            bemf_offset=34.0981,
-            static_friction_pct=2,
+            bemf_offset=-5.0214,
+            static_friction_pct=11,
         ),
     )
     rear_right_motor = Motor(
         port=3,
         inverted=True,
         calibration=MotorCalibration(
-            ticks_to_rad=0.00364443,
+            ticks_to_rad=0.00356289,
             vel_lpf_alpha=0.05,
-            bemf_offset=-4.1582,
+            bemf_offset=-8.1262,
             static_friction_pct=10,
         ),
     )
