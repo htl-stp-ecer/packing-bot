@@ -71,10 +71,7 @@ class M000SetupMission(SetupMission):
             # #auto_tune(),
             # #     5
             # # ),
-            wait_for_button(),
-            turn_left(90),
-            wait_for_button(),
-            drive_forward(70)
+            drive_forward(30)
             # #
             # # fully_disable_servos(),
             #
